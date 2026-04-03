@@ -140,3 +140,6 @@ make clean
 ```
 
 Removes the `bin/` directory created by `make build`.
+
+
+i am adding some new command.
