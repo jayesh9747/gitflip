@@ -1,0 +1,52 @@
+version: 2
+
+project_name: gitflip
+
+builds:
+  - id: gitflip
+    binary: gitflip
+    main: .
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/jayesh9747/gitflip/cmd.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  draft: false
+  prerelease: auto
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - Merge pull request
+      - Merge branch

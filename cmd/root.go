@@ -7,7 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "0.1.0"
+// version is injected at release time with -ldflags. Local builds fall back to "dev".
+var version = "dev"
 
 // Execute runs the root command.
 func Execute() {

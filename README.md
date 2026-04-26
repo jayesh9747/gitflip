@@ -44,13 +44,108 @@ go install github.com/jayesh9747/gitflip@latest
 
 (Ensure your `GOBIN` or `GOPATH/bin` is on `PATH`.)
 
+This uses the Go module proxy, not GitHub release assets. For a standalone binary without Go, use the release installers below.
+
+## Install without Go (prebuilt binary)
+
+Releases are built from git tags (`v0.1.0`, …) and published on [GitHub Releases](https://github.com/jayesh9747/gitflip/releases). You only need `curl` and `tar`.
+
+### Linux / macOS
+
+**Latest release — user-writable directory** (no `sudo`):
+
+```bash
+mkdir -p ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/jayesh9747/gitflip/main/scripts/install.sh | INSTALL_DIR="$HOME/.local/bin" sh
+```
+
+Ensure `~/.local/bin` is on your `PATH`.
+
+**Specific version** (pass variables to `sh`, not only `curl`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jayesh9747/gitflip/main/scripts/install.sh | VERSION=v0.1.0 INSTALL_DIR="$HOME/.local/bin" sh
+```
+
+**System-wide** (needs write access to `/usr/local/bin`, often `sudo`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jayesh9747/gitflip/main/scripts/install.sh | sudo sh
+```
+
+Or download the `gitflip_<version>_<os>_<arch>.tar.gz` for your platform from the release page and extract the `gitflip` binary yourself.
+
+### Windows
+
+PowerShell installer:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/jayesh9747/gitflip/main/scripts/install.ps1 | iex
+```
+
+Install a specific version:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/jayesh9747/gitflip/main/scripts/install.ps1))) -Version v0.1.0
+```
+
+By default this installs to `%USERPROFILE%\AppData\Local\Programs\gitflip\bin`. Add that directory to your `PATH` if needed.
+
+Or download `gitflip_<version>_windows_<arch>.zip` from the release page and extract `gitflip.exe` manually.
+
+## Release flow
+
+This project publishes binaries to **GitHub Releases**, not to the GitHub **Packages** tab. For a Go CLI, that is the normal distribution path unless you also publish to a package manager.
+
+The release automation lives in:
+
+- `.github/workflows/release.yml`
+- `.goreleaser.yaml`
+
+When you push a tag that starts with `v`, GitHub Actions runs GoReleaser and uploads:
+
+- Linux archives: `gitflip_<version>_linux_amd64.tar.gz`, `gitflip_<version>_linux_arm64.tar.gz`
+- macOS archives: `gitflip_<version>_darwin_amd64.tar.gz`, `gitflip_<version>_darwin_arm64.tar.gz`
+- Windows archives: `gitflip_<version>_windows_amd64.zip`
+- `checksums.txt`
+
+### Release a new version
+
+1. Commit and push the release files (`.github/workflows/release.yml`, `.goreleaser.yaml`, `scripts/install.sh`, `scripts/install.ps1`, README changes).
+2. Create an annotated tag:
+
+   ```bash
+   git tag -a v0.1.1 -m "Release v0.1.1"
+   ```
+
+3. Push the branch and tag:
+
+   ```bash
+   git push origin main
+   git push origin v0.1.1
+   ```
+
+4. Open `https://github.com/jayesh9747/gitflip/actions` and wait for the `release` workflow to finish.
+5. Open `https://github.com/jayesh9747/gitflip/releases` and verify the assets are attached to the new release.
+
+### Test the release config locally
+
+If you have GoReleaser installed:
+
+```bash
+goreleaser release --snapshot --clean
+```
+
+That builds the release artifacts locally without publishing them.
+
 ## Where data lives
 
-| Path | Purpose |
-|------|---------|
-| `~/.gitflip/config.json` | Profiles and active global profile |
-| `~/.gitflip/keys/<name>` | Private key for profile `<name>` |
-| `~/.gitflip/keys/<name>.pub` | Public key |
+| Path                         | Purpose                            |
+| ---------------------------- | ---------------------------------- |
+| `~/.gitflip/config.json`     | Profiles and active global profile |
+| `~/.gitflip/keys/<name>`     | Private key for profile `<name>`   |
+| `~/.gitflip/keys/<name>.pub` | Public key                         |
 
 If you previously used the older `ghprofile` name, **`~/.ghprofile` is renamed to `~/.gitflip`** the first time config is loaded, when `~/.gitflip` does not already exist.
 
@@ -140,6 +235,3 @@ make clean
 ```
 
 Removes the `bin/` directory created by `make build`.
-
-
-i am adding some new command.
