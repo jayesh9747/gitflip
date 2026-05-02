@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
 
 	"github.com/fatih/color"
 	"github.com/jayesh9747/gitflip/internal/config"
@@ -70,6 +71,25 @@ func runUse(cmd *cobra.Command, args []string) {
 	root.Active = name
 	if err := config.Save(root); err != nil {
 		exitErr(fmt.Errorf("save config: %w", err))
+	}
+
+	// Try to make the profile active in the ssh-agent as well so SSH auth
+	// uses the intended key. Clear other identities and add this key. This
+	// is best-effort; failures are non-fatal and reported to the user.
+	if keygen.KeyPairExists(prof.SSHKeyPath) {
+		// Remove all identities, then add the profile key.
+		_ = exec.Command("ssh-add", "-D").Run()
+		out, err := exec.Command("ssh-add", prof.SSHKeyPath).CombinedOutput()
+		if err != nil {
+			color.New(color.FgYellow).Printf("Warning: failed to load SSH key into agent: %v\n", err)
+			if len(out) > 0 {
+				fmt.Printf("  ssh-add output: %s\n", string(out))
+			}
+		} else {
+			color.New(color.FgGreen).Printf("✓ SSH key loaded into ssh-agent\n")
+		}
+	} else {
+		color.New(color.FgYellow).Printf("Warning: SSH private key not found at %s — GitHub SSH auth may fail until you run: gitflip ssh generate %s\n\n", prof.SSHKeyPath, name)
 	}
 
 	green := color.New(color.FgGreen).SprintFunc()
