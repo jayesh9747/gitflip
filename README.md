@@ -4,6 +4,8 @@
 
 You get a single static binary. Runtime expectations: **`git`** (for `use` and `current`), **`ssh`** and **`ssh-keygen`** (for keys and `ssh test`).
 
+### SSH agent & profile switching
+
 ## Requirements
 
 - [Go](https://go.dev/dl/) 1.22+ (to build from source)
